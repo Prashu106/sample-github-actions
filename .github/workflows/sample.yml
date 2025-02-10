@@ -115,11 +115,12 @@ jobs:
         ECR_REPOSITORY: github-sample
       if: github.event_name == 'workflow_dispatch'  # Runs only when the workflow is triggered manually
       run: |
+        IMAGE_TAG="${{ github.event.inputs.environment }}-${{ env.VERSION }}"
+        echo "Building and pushing image with tag: $IMAGE_TAG"
         # Build and push the image with the environment and version tag
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }} .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }}
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.VERSION }}
-        echo "Docker image pushed to ECR with tag: $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }}"
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        echo "Docker image pushed to ECR with tag: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
     - name: Output Docker image tag
       run: echo "Docker image pushed with tag:${{ github.event.inputs.environment }}-${{ env.VERSION }}"

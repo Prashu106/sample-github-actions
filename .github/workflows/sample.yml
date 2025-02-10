@@ -6,6 +6,8 @@ on:
       - dev
       - int
       - prod
+    types:
+      - closed # Trigger only when PR is merged or closed
 
 jobs:
   build:

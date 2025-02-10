@@ -91,6 +91,7 @@ jobs:
         # New version after increment
         VERSION="${major}.${minor}.${patch}"
         echo "New version: $VERSION"
+        git push origin $VERSION
         
         # Set the version in the GitHub environment for further steps
         echo "VERSION=$VERSION" >> $GITHUB_ENV

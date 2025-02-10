@@ -1,9 +1,11 @@
 name: Build and push image to ECR
 
 on:
-  push:
-    tags:
-      - '*'
+  pull_request:
+    branches:
+      - dev
+      - int
+      - prod
 
 jobs:
   build:
@@ -38,10 +40,26 @@ jobs:
     - name: Determine Docker Image Tag
       id: version
       run: |
-        # Check if there's a Git tag, use it for the version.
-        VERSION=$(git describe --tags --abbrev=0 || echo "latest")
-        echo "VERSION=${VERSION}" >> $GITHUB_ENV
-        echo "Docker tag will be: $VERSION"
+        # Check the branch name and set the image tag accordingly
+        BRANCH_NAME="${GITHUB_REF##*/}"
+        
+        if [ "$BRANCH_NAME" == "dev" ]; then
+          # For dev branch, use latest tag
+          IMAGE_TAG="latest"
+        elif [ "$BRANCH_NAME" == "int" ]; then
+          # For int branch, generate a semantic version (e.g., 1.0.0)
+          VERSION=$(git describe --tags --abbrev=0 || echo "1.0.0")
+          # Increment the version (patch version)
+          IMAGE_TAG=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
+        elif [ "$BRANCH_NAME" == "prod" ]; then
+          # For prod branch, generate a stable semantic version (e.g., 2.0.0)
+          VERSION=$(git describe --tags --abbrev=0 || echo "2.0.0")
+          # Increment the version (minor version)
+          IMAGE_TAG=$(echo $VERSION | awk -F. -v OFS=. '{$2++;$3=0;print}')
+        fi
+
+        echo "VERSION=${IMAGE_TAG}" >> $GITHUB_ENV
+        echo "Docker tag will be: $IMAGE_TAG"
 
     - name: Build, tag, and push image to Amazon ECR
       env:

@@ -54,6 +54,7 @@ jobs:
     - name: Push image for DEV environment (latest tag)
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: github-sample
       if: github.ref == 'refs/heads/dev'  # This runs only on push to DEV branch
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
@@ -111,6 +112,7 @@ jobs:
     - name: Build and Push image to ECR for INT or PROD environment
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: github-sample
       if: github.event_name == 'workflow_dispatch'  # Runs only when the workflow is triggered manually
       run: |
         # Build and push the image with the environment and version tag
@@ -120,4 +122,4 @@ jobs:
         echo "Docker image pushed to ECR with tag: $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }}"
 
     - name: Output Docker image tag
-      run: echo "Docker image pushed with tag: $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }}"
+      run: echo "Docker image pushed with tag:${{ github.event.inputs.environment }}-${{ env.VERSION }}"

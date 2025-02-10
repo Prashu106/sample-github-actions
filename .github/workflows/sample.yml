@@ -93,7 +93,6 @@ jobs:
         # New version after increment
         VERSION="${major}.${minor}.${patch}"
         echo "New version: $VERSION"
-        git push origin $VERSION
         
         # Set the version in the GitHub environment for further steps
         echo "VERSION=$VERSION" >> $GITHUB_ENV
@@ -124,6 +123,7 @@ jobs:
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "Docker image pushed to ECR with tag: $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
     # Step to commit and push the incremented tag to the remote repository
     - name: Commit and push the new tag to the repository
       if: github.event_name == 'workflow_dispatch'  # This runs only when the workflow is manually triggered
@@ -135,6 +135,6 @@ jobs:
         # Push the new tag to the remote repository
         git push origin $VERSION
         echo "New version tag $VERSION pushed to the repository."
-        
+
     - name: Output Docker image tag
       run: echo "Docker image pushed with tag:${{ github.event.inputs.environment }}-${{ env.VERSION }}"

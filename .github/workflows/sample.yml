@@ -1,13 +1,24 @@
-name: Build and push image to ECR
-
 on:
-  pull_request:
+  push:
     branches:
-      - dev
-      - int
-      - prod
-    types:
-      - closed # Trigger only when PR is merged or closed
+      - dev  # Automatically trigger on push to dev branch (after PR merge)
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose the environment (INT or PROD)'
+        required: true
+        type: choice
+        options:
+          - INT
+          - PROD
+      version_type:
+        description: 'Choose version type (major, minor, patch)'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   build:
@@ -39,35 +50,74 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Determine Docker Image Tag
-      id: version
-      run: |
-        # Check the branch name and set the image tag accordingly
-        BRANCH_NAME="${GITHUB_REF##*/}"
-        
-        if [ "$BRANCH_NAME" == "dev" ]; then
-          # For dev branch, use latest tag
-          IMAGE_TAG="latest"
-        elif [ "$BRANCH_NAME" == "int" ]; then
-          # For int branch, generate a semantic version (e.g., 1.0.0)
-          VERSION=$(git describe --tags --abbrev=0 || echo "1.0.0")
-          # Increment the version (patch version)
-          IMAGE_TAG=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
-        elif [ "$BRANCH_NAME" == "prod" ]; then
-          # For prod branch, generate a stable semantic version (e.g., 2.0.0)
-          VERSION=$(git describe --tags --abbrev=0 || echo "2.0.0")
-          # Increment the version (minor version)
-          IMAGE_TAG=$(echo $VERSION | awk -F. -v OFS=. '{$2++;$3=0;print}')
-        fi
-
-        echo "VERSION=${IMAGE_TAG}" >> $GITHUB_ENV
-        echo "Docker tag will be: $IMAGE_TAG"
-
-    - name: Build, tag, and push image to Amazon ECR
+     # Step to automatically push the image when PR is merged to DEV branch
+    - name: Push image for DEV environment (latest tag)
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: github-sample
-        IMAGE_TAG: ${{ env.VERSION }}
+      if: github.ref == 'refs/heads/dev'  # This runs only on push to DEV branch
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "Docker image pushed to ECR with 'latest' tag."
+
+    # Step to handle versioning and push to INT or PROD when workflow is manually triggered
+    - name: Get latest tag and increment version
+      if: github.event_name == 'workflow_dispatch'  # This runs only when the workflow is manually triggered
+      run: |
+        # Get the latest tag from git or fallback to 1.0.0
+        VERSION=$(git describe --tags --abbrev=0 || echo "1.0.0")
+        echo "Latest tag: $VERSION"
+        
+        # Split version into major, minor, patch
+        IFS='.' read -r major minor patch <<<"$VERSION"
+
+        # Increment version based on the version type selected
+        case ${{ github.event.inputs.version_type }} in
+          major)
+            major=$((major + 1))
+            minor=0
+            patch=0
+            ;;
+          minor)
+            minor=$((minor + 1))
+            patch=0
+            ;;
+          patch)
+            patch=$((patch + 1))
+            ;;
+        esac
+
+        # New version after increment
+        VERSION="${major}.${minor}.${patch}"
+        echo "New version: $VERSION"
+        
+        # Set the version in the GitHub environment for further steps
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+    # Step to checkout the appropriate branch for INT or PROD
+    - name: Checkout the appropriate branch for ${{ github.event.inputs.environment }} environment
+      if: github.event_name == 'workflow_dispatch'  # This runs only when the workflow is triggered manually
+      run: |
+        if [ "${{ github.event.inputs.environment }}" == "INT" ]; then
+          git fetch origin int
+          git checkout int
+        elif [ "${{ github.event.inputs.environment }}" == "PROD" ]; then
+          git fetch origin prod
+          git checkout prod
+        fi
+        echo "Checked out the ${GITHUB_REF} branch."
+
+    # Step to build and push the image for INT or PROD environment
+    - name: Build and Push image to ECR for INT or PROD environment
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      if: github.event_name == 'workflow_dispatch'  # Runs only when the workflow is triggered manually
+      run: |
+        # Build and push the image with the environment and version tag
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }} .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }}
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:${{ env.VERSION }}
+        echo "Docker image pushed to ECR with tag: $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }}"
+
+    - name: Output Docker image tag
+      run: echo "Docker image pushed with tag: $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.environment }}-${{ env.VERSION }}"

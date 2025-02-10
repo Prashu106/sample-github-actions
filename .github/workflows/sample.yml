@@ -128,6 +128,10 @@ jobs:
     - name: Commit and push the new tag to the repository
       if: github.event_name == 'workflow_dispatch'  # This runs only when the workflow is manually triggered
       run: |
+        # Configure Git user for committing the version tag
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        
         # Create the new tag in git
         git tag $VERSION
         git commit --allow-empty -m "Bump version to $VERSION"

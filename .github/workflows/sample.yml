@@ -45,17 +45,17 @@ jobs:
         
         if [ "$BRANCH_NAME" == "dev" ]; then
           # For dev branch, use latest tag
-          IMAGE_TAG="latest"
+          IMAGE_TAG="sample:latest"
         elif [ "$BRANCH_NAME" == "int" ]; then
           # For int branch, generate a semantic version (e.g., 1.0.0)
           VERSION=$(git describe --tags --abbrev=0 || echo "1.0.0")
           # Increment the version (patch version)
-          IMAGE_TAG=$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
+          IMAGE_TAG=sample:$(echo $VERSION | awk -F. -v OFS=. '{$NF++;print}')
         elif [ "$BRANCH_NAME" == "prod" ]; then
           # For prod branch, generate a stable semantic version (e.g., 2.0.0)
           VERSION=$(git describe --tags --abbrev=0 || echo "2.0.0")
           # Increment the version (minor version)
-          IMAGE_TAG=$(echo $VERSION | awk -F. -v OFS=. '{$2++;$3=0;print}')
+          IMAGE_TAG=sample:$(echo $VERSION | awk -F. -v OFS=. '{$2++;$3=0;print}')
         fi
 
         echo "VERSION=${IMAGE_TAG}" >> $GITHUB_ENV

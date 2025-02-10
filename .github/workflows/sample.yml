@@ -1,7 +1,25 @@
-name: Context Variables Test with Manual Trigger
+name: Build and Push Docker Image to Environments
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Choose the environment to deploy (DEV, INT, PROD)'
+        required: true
+        type: choice
+        options:
+          - DEV
+          - INT
+          - PROD
+      version_type:
+        description: 'Choose version type (major, minor, patch)'
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
 
 jobs:
   test-context:

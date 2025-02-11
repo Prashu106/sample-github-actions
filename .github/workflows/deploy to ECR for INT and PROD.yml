@@ -17,26 +17,34 @@ on:
           - PROD
 
 jobs:
-  deploy:
+  build:
+    name: Build Image
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout the code
+    - name: Check out code
       uses: actions/checkout@v2
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
 
-    - name: Set up AWS credentials
+    - name: Build with Maven
+      run: mvn clean install -DskipTests
+
+    - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
-    - name: Log in to Amazon ECR
-      run: |
-        aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
 
     - name: Get the current version tag from the latest Git tag
       id: get_git_tag
@@ -71,15 +79,15 @@ jobs:
     - name: Tag and Build Docker image
       run: |
         if [ "${{ github.event.inputs.environment }}" == "INT" ]; then
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:int-${{ env.TAG }} .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG .
         elif [ "${{ github.event.inputs.environment }}" == "PROD" ]; then
-          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:prod-${{ env.TAG }} .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG .
         fi
 
     - name: Push Docker image to ECR
       run: |
         if [ "${{ github.event.inputs.environment }}" == "INT" ]; then
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:int-${{ env.TAG }}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:int-$TAG
         elif [ "${{ github.event.inputs.environment }}" == "PROD" ]; then
-          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:prod-${{ env.TAG }}
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:prod-$TAG
         fi

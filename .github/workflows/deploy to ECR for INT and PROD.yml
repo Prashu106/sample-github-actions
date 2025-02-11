@@ -1,0 +1,85 @@
+name: Deploy to ECR (INT/PROD)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Choose the version to deploy (patch, minor, major)'
+        required: true
+        default: 'patch'  # You can have options: patch, minor, major
+      environment:
+        description: 'Select the environment to deploy (INT or PROD)'
+        required: true
+        default: 'INT'  # Default can be INT, but user can change it
+        type: choice
+        options:
+          - INT
+          - PROD
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout the code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Set up AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+    - name: Get the current version tag from the latest Git tag
+      id: get_git_tag
+      run: |
+        TAG=$(git describe --tags --abbrev=0)
+        echo "Current tag: $TAG"
+        echo "TAG=$TAG" >> $GITHUB_ENV
+
+    - name: Update version based on user input
+      id: update_version
+      run: |
+        version_parts=(${TAG//./ })
+        if [ "${{ github.event.inputs.version }}" == "patch" ]; then
+          version_parts[2]=$((version_parts[2]+1))  # Increment patch version
+        elif [ "${{ github.event.inputs.version }}" == "minor" ]; then
+          version_parts[1]=$((version_parts[1]+1))  # Increment minor version
+          version_parts[2]=0  # Reset patch version
+        else
+          version_parts[0]=$((version_parts[0]+1))  # Increment major version
+          version_parts[1]=0  # Reset minor version
+          version_parts[2]=0  # Reset patch version
+        fi
+        new_version="v${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
+        echo "New version: $new_version"
+        echo "TAG=$new_version" >> $GITHUB_ENV
+
+    - name: Tag the Git repository with the new version
+      run: |
+        git tag -a ${{ env.TAG }} -m "Deploying version ${{ env.TAG }}"
+        git push origin ${{ env.TAG }}
+
+    - name: Tag and Build Docker image
+      run: |
+        if [ "${{ github.event.inputs.environment }}" == "INT" ]; then
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:int-${{ env.TAG }} .
+        elif [ "${{ github.event.inputs.environment }}" == "PROD" ]; then
+          docker build -t ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:prod-${{ env.TAG }} .
+        fi
+
+    - name: Push Docker image to ECR
+      run: |
+        if [ "${{ github.event.inputs.environment }}" == "INT" ]; then
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:int-${{ env.TAG }}
+        elif [ "${{ github.event.inputs.environment }}" == "PROD" ]; then
+          docker push ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.ECR_REPO_NAME }}:prod-${{ env.TAG }}
+        fi

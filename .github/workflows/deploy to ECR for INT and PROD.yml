@@ -49,7 +49,7 @@ jobs:
     - name: Get the current version tag from the latest Git tag
       id: get_git_tag
       run: |
-        TAG=$(git describe --tags --abbrev=0)
+        TAG=$(git describe --tags --abbrev=0 || echo "v1.0.0")
         echo "Current tag: $TAG"
         echo "TAG=$TAG" >> $GITHUB_ENV
 

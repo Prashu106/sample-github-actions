@@ -2,7 +2,7 @@ name: Deploy to ECR (INT/PROD)
 
 permissions:
   contents: write
-  
+
 on:
   workflow_dispatch:
     inputs:
@@ -70,7 +70,7 @@ jobs:
           version_parts[1]=0  # Reset minor version
           version_parts[2]=0  # Reset patch version
         fi
-        new_version="v${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
+        new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
         echo "New version: $new_version"
         echo "TAG=$new_version" >> $GITHUB_ENV
 

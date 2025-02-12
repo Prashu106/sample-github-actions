@@ -73,6 +73,7 @@ jobs:
         new_version="${version_parts[0]}.${version_parts[1]}.${version_parts[2]}"
         echo "New version: $new_version"
         echo "TAG=$new_version" >> $GITHUB_ENV
+        echo $TAG
 
     - name: Set Git user identity (local)
       run: |

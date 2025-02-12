@@ -75,7 +75,14 @@ jobs:
       run: |
         git config user.name "Prashu"
         git config user.email "prashusaxena23@gmail.com"
-        
+
+    - name: Set up GitHub authentication
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/Prashu106/sample-github-actions.git
+
+
     - name: Tag the Git repository with the new version
       run: |
         git tag -a ${{ env.TAG }} -m "Deploying version ${{ env.TAG }}"

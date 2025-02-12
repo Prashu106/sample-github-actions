@@ -71,6 +71,11 @@ jobs:
         echo "New version: $new_version"
         echo "TAG=$new_version" >> $GITHUB_ENV
 
+    - name: Set Git user identity (local)
+      run: |
+        git config user.name "Prashu"
+        git config user.email "prashusaxena23@gmail.com"
+        
     - name: Tag the Git repository with the new version
       run: |
         git tag -a ${{ env.TAG }} -m "Deploying version ${{ env.TAG }}"

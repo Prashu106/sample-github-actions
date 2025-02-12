@@ -23,6 +23,8 @@ jobs:
   build:
     name: Build Image
     runs-on: ubuntu-latest
+    env:
+      ECR_REPOSITORY: github-sample
 
     steps:
     - name: Check out code

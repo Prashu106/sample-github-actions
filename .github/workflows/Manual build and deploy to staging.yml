@@ -2,6 +2,15 @@ name: Manual Build and Deploy to Staging
 
 on:
   workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select the environment (INT or PROD)'
+        required: true
+        type: choice
+        options:
+          - INT
+          - PROD
+
   
 jobs:
   build-and-deploy:
@@ -13,13 +22,6 @@ jobs:
     # Step 1: Checkout the code
     - name: Checkout code
       uses: actions/checkout@v2
-
-    # Step 2: Fetch all tags to make them available for selection
-    - name: Fetch all tags
-      run: |
-        git fetch --tags
-        echo "Available tags:"
-        git tag
 
     # Step 3: Checkout the specific tag that the user selected
     - name: retrieve the tag
@@ -40,11 +42,36 @@ jobs:
     - name: Build with Maven
       run: mvn clean install -DskipTests
 
+    # Step 2: Set environment-specific values and AWS credentials
+    - name: Set environment-specific values and AWS credentials
+      run: |
+        ENVIRONMENT=${{ github.event.inputs.environment }}
+        echo "Selected environment: $ENVIRONMENT"
+        
+        if [ "$ENVIRONMENT" == "INT" ]; then
+          echo "Setting environment to INT"
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+        elif [ "$ENVIRONMENT" == "PROD" ]; then
+          echo "Setting environment to PROD"
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID_PROD }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}"
+        else
+          echo "Setting environment to DEV"
+          export AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}"
+          export AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+        
+        fi
+
+        # Export variables to make them accessible to subsequent steps
+        echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" >> $GITHUB_ENV
+        echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> $GITHUB_ENV
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-access-key-id: ${{ env.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ env.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
 
     - name: Login to Amazon ECR

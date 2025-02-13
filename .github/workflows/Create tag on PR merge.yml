@@ -31,9 +31,17 @@ jobs:
     # Step 2: Get the latest commit and create a new tag based on the commit
     - name: Create new tag based on commit
       run: |
-        # Generate a new tag. You can use your own naming convention here.
-        NEW_TAG="v$(date +'%Y.%m.%d.%H%M')"
-        echo "Creating new tag: $NEW_TAG"
-        git tag $NEW_TAG
-        git push origin $NEW_TAG
-        echo "Tag $NEW_TAG pushed to remote repository"
+        # Get the latest tag number
+        LAST_TAG=$(git tag | grep -E '^v[0-9]+$' | sort -V | tail -n 1)
+        # Increment the tag number
+         if [ -z "$LAST_TAG" ]; then
+           NEW_TAG="v1"
+         else
+           LAST_NUMBER=$(echo $LAST_TAG | sed 's/v//')
+           NEW_NUMBER=$((LAST_NUMBER + 1))
+           NEW_TAG="v$NEW_NUMBER"
+         fi
+         echo "Creating new tag: $NEW_TAG"
+         git tag $NEW_TAG
+         git push origin $NEW_TAG
+         echo "Tag $NEW_TAG pushed to remote repository"

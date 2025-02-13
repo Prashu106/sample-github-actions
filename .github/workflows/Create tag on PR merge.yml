@@ -33,6 +33,7 @@ jobs:
       run: |
         # Get the latest tag number
         LAST_TAG=$(git tag | grep -E '^v[0-9]+$' | sort -V | tail -n 1)
+        echo $LAST_TAG
         # Increment the tag number
          if [ -z "$LAST_TAG" ]; then
            NEW_TAG="v1"

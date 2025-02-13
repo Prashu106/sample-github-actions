@@ -24,8 +24,9 @@ jobs:
       run: |
         echo "The tag that triggered the workflow is: ${{ github.ref }}"
         TAG_NAME=${{ github.ref }}
-        echo "Checking out tag: ${{ github.event.inputs.tag }}"
-        git checkout ${{ github.event.inputs.tag }}
+        TAG_NAME=${TAG_NAME#refs/tags/}
+        echo "Checking out tag: $TAG_NAME"
+        git checkout $TAG_NAME
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -56,9 +57,9 @@ jobs:
         ECR_REPOSITORY: github-sample
       run: |
         echo ${{ github.event.inputs.tag }}
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.tag }} .
+        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG_NAME .
 
     # Step 9: Push Docker image to AWS ECR
     - name: Push Docker image to AWS ECR
       run: |
-        docker push -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.tag }} .
+        docker push -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG_NAME .

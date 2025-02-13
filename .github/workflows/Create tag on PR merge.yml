@@ -13,7 +13,12 @@ jobs:
     # Step 1: Checkout the code
     - name: Checkout code
       uses: actions/checkout@v2
-    
+      
+    - name: Set Git user identity (local)
+      run: |
+        git config user.name "Prashu106"
+        git config user.email "prashusaxena23@gmail.com"
+
     - name: Set up GitHub authentication
       env:
         GH_TOKEN: ${{ secrets.GH_TOKEN }}

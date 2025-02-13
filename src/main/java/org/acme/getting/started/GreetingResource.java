@@ -16,6 +16,7 @@ public class GreetingResource {
     @Produces(MediaType.TEXT_PLAIN)
     @Path("/greeting/{name}")
     public String greeting(String name) {
+    	
         return service.greeting(name);
     }
 

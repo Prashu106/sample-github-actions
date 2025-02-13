@@ -53,6 +53,7 @@ jobs:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: github-sample
       run: |
+        echo ${{ github.event.inputs.tag }}
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:${{ github.event.inputs.tag }} .
 
     # Step 9: Push Docker image to AWS ECR

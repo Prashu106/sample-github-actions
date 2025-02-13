@@ -13,6 +13,12 @@ jobs:
     # Step 1: Checkout the code
     - name: Checkout code
       uses: actions/checkout@v2
+    
+    - name: Set up GitHub authentication
+      env:
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      run: |
+        git remote set-url origin https://x-access-token:${GH_TOKEN}@github.com/Prashu106/sample-github-actions.git
 
     # Step 2: Get the latest commit and create a new tag based on the commit
     - name: Create new tag based on commit

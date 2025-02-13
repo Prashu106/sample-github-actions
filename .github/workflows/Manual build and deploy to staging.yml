@@ -6,6 +6,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+  env: 
+    ECR_REPOSITORY: github-sample
 
     steps:
     # Step 1: Checkout the code
@@ -52,13 +54,10 @@ jobs:
 
     # Step 7: Build the Docker image with the selected tag
     - name: Build Docker image
-      env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: github-sample
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$TAG_NAME .
+        docker build -t ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$TAG_NAME .
 
     # Step 9: Push Docker image to AWS ECR
     - name: Push Docker image to AWS ECR
       run: |
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$TAG_NAME
+        docker push ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:$TAG_NAME

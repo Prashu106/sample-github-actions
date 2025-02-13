@@ -23,7 +23,7 @@ jobs:
     - name: Checkout specific tag
       run: |
         # Use cut to remove the refs/tags/ prefix
-        TAG_NAME=$(echo $GITHUB_REF | cut -d'/' -f3)
+        TAG_NAME=$(echo $GITHUB_REF | sed 's/^refs\/tags\///')
         echo "The tag that triggered the workflow is: $GITHUB_REF"
         echo "Extracted tag name: $TAG_NAME"
 

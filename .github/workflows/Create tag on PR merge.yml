@@ -1,5 +1,8 @@
 name: Create Tag on PR Merge
 
+permissions:
+  contents: write
+  
 on:
   push:
     branches:
@@ -13,7 +16,7 @@ jobs:
     # Step 1: Checkout the code
     - name: Checkout code
       uses: actions/checkout@v2
-      
+
     - name: Set Git user identity (local)
       run: |
         git config user.name "Prashu106"

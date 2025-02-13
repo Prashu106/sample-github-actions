@@ -6,8 +6,8 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-  env: 
-    ECR_REPOSITORY: github-sample
+    env: 
+      ECR_REPOSITORY: github-sample
 
     steps:
     # Step 1: Checkout the code

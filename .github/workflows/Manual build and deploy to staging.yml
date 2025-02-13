@@ -24,7 +24,7 @@ jobs:
       run: |
         echo "The tag that triggered the workflow is: ${{ github.ref }}"
         TAG_NAME=${{ github.ref }}
-        TAG_NAME=${{ github.ref#refs/tags/ }}
+        TAG_NAME=${ github.ref#refs/tags/ }
         echo "Checking out tag: $TAG_NAME"
         git checkout $TAG_NAME
 

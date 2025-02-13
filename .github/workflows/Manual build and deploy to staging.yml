@@ -22,6 +22,8 @@ jobs:
     # Step 3: Checkout the specific tag that the user selected
     - name: Checkout specific tag
       run: |
+        echo "The tag that triggered the workflow is: ${{ github.ref }}"
+        TAG_NAME=${{ github.ref }}
         echo "Checking out tag: ${{ github.event.inputs.tag }}"
         git checkout ${{ github.event.inputs.tag }}
 

@@ -18,6 +18,9 @@ on:
         options:
           - INT
           - PROD
+  push:
+    branches:
+      - dev  # Only run on this branch
 
 jobs:
   build:

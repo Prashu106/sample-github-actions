@@ -11,5 +11,5 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Echo environment
-        run: echo "Running manually in the dev branch!"
+        run: echo "Running manually in the dev branch !"
  

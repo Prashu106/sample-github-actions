@@ -27,15 +27,34 @@ on:
         # The data type of the input
         type: boolean
 
+
+env:
+  FORCE_BUILD_OTMM: ${{ inputs.forceBuild_OTMM }}
+  FORCE_BUILD_OTDS: ${{ inputs.forceBuild_OTDS }}
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "greet"
-  greet:
+  setup:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
+    outputs:
+      changed_otmm: ${{ steps.otmm.outputs.changed }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Runs a single command using the runners shell
     - name: Send greeting
-      run: echo "Hello ${{ inputs.forceBuild_OTMM }}"
+      id: send_greeting
+      run: echo "Hello ${{ inputs.forceBuild_OTMM }} 
+
+    - name: otmm step
+      id: otmm
+      run: echo "otmm ${{env.FORCE_BUILD_OTMM}}"
+
+    - name: otds step
+      id: otds
+      run: echo "otds ${{env.FORCE_BUILD_OTDS}}"
+
+
+    

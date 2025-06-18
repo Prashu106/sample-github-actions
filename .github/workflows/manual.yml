@@ -26,6 +26,15 @@ on:
         required: true
         # The data type of the input
         type: boolean
+      forceBuild_RMA:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Force RMA build.'
+        # Default value if no value is explicitly provided
+        default: false
+        # Input has to be provided for the workflow to run
+        required: true
+        # The data type of the input
+        type: boolean
 
 
 env:

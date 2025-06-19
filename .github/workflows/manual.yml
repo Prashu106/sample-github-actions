@@ -83,7 +83,6 @@ jobs:
         cache: maven
 
      - name: Build with Maven
-       working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
        run: mvn clean install -DskipTests
 
 

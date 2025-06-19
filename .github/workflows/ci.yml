@@ -1,0 +1,38 @@
+name: CI Pipeline
+
+on:
+  workflow_dispatch:
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.set_tag.outputs.tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - id: set_tag
+        run: |
+          echo "::set-output name=tag::v1.0.${GITHUB_RUN_NUMBER}"
+          
+      - name: Build Docker image
+        run: |
+          echo "Building Docker image with tag ${{ steps.set_tag.outputs.tag }}"
+
+  test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Run tests
+        run: echo "Running tests..."
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Deploy app
+        run: echo "Deploying app with image tag ${{ needs.build.outputs.image-tag }}"

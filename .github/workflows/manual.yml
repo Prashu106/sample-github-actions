@@ -84,10 +84,8 @@ jobs:
 
      - name: Build with Maven
        working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
-       run: mvn clean install -DskipTests
-
-     - name: Move JAR to artifacts folder
        run: |
+         mvn clean package -DskipTests
          mkdir -p lib
          mv target/*.jar lib/
 

@@ -37,7 +37,7 @@ ENV JAVA_OPTIONS="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jb
 #COPY --chown=1001 target/quarkus-app/app/ /deployments/app/
 #COPY --chown=1001 target/quarkus-app/quarkus/ /deployments/quarkus/
 
-COPY --chown=1001 rma-directory/lib/*.jar /deployments/rma-directory/
+COPY --chown=1001 lib/*.jar /deployments/rma-directory/
 
 EXPOSE 8080
 USER 1001

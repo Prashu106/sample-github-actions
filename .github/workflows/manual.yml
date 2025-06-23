@@ -70,6 +70,10 @@ jobs:
 
     if:  ${{ inputs.forceBuild_RMA }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
+    
     needs: setup
     steps: 
      - name: Check out code
@@ -83,23 +87,24 @@ jobs:
         cache: maven
 
      - name: Build with Maven
-       working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
        run: |
          mvn clean package -DskipTests
-
+    
      - name: Upload JAR as artifact
-       working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
        uses: actions/upload-artifact@v4
        with:
          name: app-jar
-         path: target/*.jar
-  
+         path: target/*.jar  # adjust if your JAR is named differently
+
+
+
   docker-build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
     name: Download JAR and Build Docker Image
-    needs: build-jar  # Wait for previous job to finish
-    working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
-
+    needs: rma-build  # Wait for previous job to finish
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
@@ -115,7 +120,3 @@ jobs:
 
       - name: Build Docker Image
         run: docker build -t my-app:latest .
-
-
-
-    

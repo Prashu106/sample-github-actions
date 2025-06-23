@@ -94,7 +94,7 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
          name: app-jar
-         path: ${{ github.workspace }}/${{ env.RMA_WORKING_DIRECTORY }}/target/*.jar  # adjust if your JAR is named differently
+         path: ${{ github.workspace }}/${{ env.RMA_WORKING_DIRECTORY }}/target/  # adjust if your JAR is named differently
 
 
 
@@ -113,7 +113,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-jar
-          path: ${{ github.workspace }}/${{ env.RMA_WORKING_DIRECTORY }}/lib  # put it in same directory expected by Dockerfile
+          path: ${{ github.workspace }}/${{ env.RMA_WORKING_DIRECTORY }}/target  # put it in same directory expected by Dockerfile
+
+      - name: copy jar to lib directory
+        run: |
+          cp ${{ github.workspace }}/${{ env.RMA_WORKING_DIRECTORY }}/target/*.jar ./lib/
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

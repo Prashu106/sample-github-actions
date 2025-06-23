@@ -94,7 +94,7 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
          name: app-jar
-         path: target/*.jar  # adjust if your JAR is named differently
+         path: /home/runner/work/sample-github-actions/sample-github-actions/rma-directory/target/*.jar  # adjust if your JAR is named differently
 
 
 

@@ -135,3 +135,9 @@ jobs:
         with:
           name: docker-image
           path: ${{ github.workspace }}/${{ env.RMA_WORKING_DIRECTORY }}
+      
+      - name: Load Docker image from tar
+        run: docker load -i my-app.tar
+
+      - name: Run container from loaded image
+        run: docker run --rm my-app:latest

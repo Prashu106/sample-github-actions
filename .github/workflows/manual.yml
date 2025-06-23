@@ -117,7 +117,6 @@ jobs:
 
       - name: copy jar to lib directory
         run: |
-          mkdir lib
           cp ${{ github.workspace }}/${{ env.RMA_WORKING_DIRECTORY }}/target/*.jar ./lib/
 
       - name: Set up Docker Buildx

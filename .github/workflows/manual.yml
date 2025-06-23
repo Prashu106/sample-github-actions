@@ -86,8 +86,35 @@ jobs:
        working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
        run: |
          mvn clean package -DskipTests
-         mkdir -p lib
-         mv target/*.jar lib/
+
+     - name: Upload JAR as artifact
+       working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
+       uses: actions/upload-artifact@v4
+       with:
+         name: app-jar
+         path: target/*.jar
+  
+  docker-build:
+    runs-on: ubuntu-latest
+    name: Download JAR and Build Docker Image
+    needs: build-jar  # Wait for previous job to finish
+    working-directory: ${{ env.RMA_WORKING_DIRECTORY }}
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Download JAR from previous job
+        uses: actions/download-artifact@v4
+        with:
+          name: app-jar
+          path: lib  # put it in same directory expected by Dockerfile
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: docker build -t my-app:latest .
 
 
 

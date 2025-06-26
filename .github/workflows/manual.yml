@@ -1,7 +1,7 @@
 # This is a basic workflow that is manually triggered
 
 name: Manual workflow
-run-name: Deploy triggered by ${{ github.actor }}
+run-name: Staging the image to ${{ inputs.environment }}
 
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
@@ -36,6 +36,14 @@ on:
         required: true
         # The data type of the input
         type: boolean
+      environment:
+        description: 'Select the environment (INT or PROD)'
+        required: true
+        type: choice
+        options:
+          - DEV
+          - INT
+          - PROD
 
 
 env:
